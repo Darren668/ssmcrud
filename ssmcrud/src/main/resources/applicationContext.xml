@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
     <!--Spring配置文件，配置和业务逻辑有关-->
     <!--Spring 扫描所有非控制器的文件-->
     <context:component-scan base-package="com.atguigu">
@@ -32,11 +32,16 @@
 
 
     <!--配置扫描器，将Mybatis接口的实现加入到ioc容器中-->
-    <bean  class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <!--扫描所有的dao接口的实现，加入到ioc容器中-->
         <property name="basePackage" value="com.atguigu.crud.dao"/>
     </bean>
 
+    <!--配置一个可以批量执行的sqlSession-->
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
+        <constructor-arg name="executorType" value="BATCH"/>
+    </bean>
 
     <!--事务控制-->
     <bean name="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
@@ -45,13 +50,13 @@
     </bean>
     <!--开启基于注解的事务，使用xml配置形式的事务-->
     <aop:config>
-        <!--切入点表达式-->
+        <!--切入点表达式，那些方法需要切入，切入后干什么呢，事务增强来处理-->
         <aop:pointcut id="txPoint" expression="execution(* com.atguigu.crud.service..*(..))"/>
         <!--配置事务增强-->
         <aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint"/>
     </aop:config>
 
-    <!--配置事务增强,默认的事务管理器就是transactionManager-->
+    <!--配置事务增强,事务如何切入。。默认的事务管理器就是transactionManager-->
     <tx:advice id="txAdvice" transaction-manager="transactionManager">
         <tx:attributes>
             <!--所有方法都是事务方法-->
