@@ -19,7 +19,7 @@ import java.util.UUID;
  * @author xinhaojie
  * @create 2021-04-03-23:37
  * 推荐使用Spring 项目就可以使用spring单元测试，就可以自动注入我们需要的组件
- * 1.导入SpringTESTMOKUAI
+ * 1.导入Spring test 模块
  * 2.使用@ContextConfiguration指定Spring配置文件的位置
  * 3.直接autowired要使用的组件即可
  */
