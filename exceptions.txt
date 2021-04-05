@@ -21,3 +21,19 @@
             pageContext.setAttribute("APP_PATH",request.getContextPath());
         %>
         可以拿到http://localhost:8080/ssmcrud
+
+5.引入jstl tag标签后加载网页提示
+Failed to load or instantiate TagLibraryValidator class:
+org.apache.taglibs.standard.tlv.JstlCoreTLV
+
+可能原因标签库没有导入响应的依赖，网上很多说jar包冲突，但是尝试将两个依赖导入后，网页成功加载。，。。。。
+        <dependency>
+            <groupId>javax.servlet.jsp.jstl</groupId>
+            <artifactId>jstl-api</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jstl-impl</artifactId>
+            <version>1.2</version>
+        </dependency>

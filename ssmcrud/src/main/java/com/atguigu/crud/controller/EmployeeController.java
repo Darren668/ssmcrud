@@ -42,7 +42,7 @@ public class EmployeeController {
         //model中添加信息
         model.addAttribute("pageInfo", page);
 
-        //先测试数据，再直接转到页面
+        //先测试数据，再直接转到页面,返回值就是views文件夹中jsp文件的名称，一定得一一对应相同
         return "list";
     }
 }
