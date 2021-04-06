@@ -20,7 +20,7 @@
         <%
             pageContext.setAttribute("APP_PATH",request.getContextPath());
         %>
-        可以拿到http://localhost:8080/ssmcrud
+        可以拿到http://localhost:8080此时就直接定位到资源路径webapp下
 
 5.引入jstl tag标签后加载网页提示
 Failed to load or instantiate TagLibraryValidator class:
