@@ -126,14 +126,22 @@
             <version>5.2.0</version>
         </dependency>
 
-        <!--网页热部署不生效，导入依赖？？？？？-->
-        <!--返回json格式的数据-->
+        <!--返回json格式的数据@ResponseBody可以将方法返回值封装为json-->
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.9.8</version>
         </dependency>
+
+        <!--导入JSR303数据校验支持,用于后端数据校验-->
+        <!-- https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.1.5.Final</version>
+        </dependency>
+
 
     </dependencies>
 </project>
