@@ -6,9 +6,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
     <!--SpringMVC配置文件，包含网站跳转逻辑的控制-->
     <!---->
-
+    <!--1.只扫描控制器即可,带有controller注解的类,指定扫描了，就要把原先的默认功能关掉-->
     <context:component-scan base-package="com.atguigu" use-default-filters="false">
-        <!--只扫描控制器即可,带有controller注解的类,指定扫描了，就要把原先的默认功能关掉-->
+
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
     </context:component-scan>
 
@@ -21,6 +21,11 @@
     <!--3.标准配置-->
     <!--SpringMVC不能处理的资源交给tomcat-->
     <mvc:default-servlet-handler/>
-    <!--能支持springmvc更高级的一些功能，JSR303校验，ajax请求。。。映射动态请求-->
+    <!--4.能支持springmvc更高级的一些功能，JSR303校验，ajax请求。。。映射动态请求-->
     <mvc:annotation-driven/>
+
+
+
+
+
 </beans>

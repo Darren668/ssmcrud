@@ -1,6 +1,7 @@
 package com.atguigu.crud.controller;
 
 import com.atguigu.crud.bean.Employee;
+import com.atguigu.crud.bean.EmployeeExample;
 import com.atguigu.crud.bean.Message;
 import com.atguigu.crud.service.EmployeeService;
 import com.github.pagehelper.PageHelper;
@@ -10,10 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.print.attribute.standard.Media;
 import javax.validation.Valid;
@@ -29,6 +27,8 @@ import java.util.List;
  * * /emp/{id} PUT 修改
  * * /emp/{id} DELETE 删除
  * * /emp POST 保存
+ *
+ * 在controller里面的方法返回都是封装好的Message对象，不管是否查询，最后至少应该返回success 或者failure中的信息
  */
 @Controller
 public class EmployeeController {
@@ -36,6 +36,52 @@ public class EmployeeController {
     @Autowired
     EmployeeService employeeService;
 
+    /**
+     * 1.员工更新方法，根据id来更新员工信息
+     * 但是注意虽然路径上有id但是不会封装到参数中，因为empId id不相同
+     * 所以如果想让路径上的数据给到参数中employee，需要将名字一致
+     * ===================================================================================================
+     * 原生的javaweb项目中，我们要想把页面的请求参数封装的实体当中，
+     * 常用的简便方式是在servlet中用request.getParameterMap()获得一个map，然
+     * 后用commons-beanutils包中的CommonUtils.toBean(request.getParameterMap(), example.class)去完成封装。
+     *
+     * SpringMVC中集成了这种请求参数封装成对象的方式要求：
+     * Controller中的业务方法的POJO参数的属性名与请求参数的标签中的name名称一致，参数值会自动映射完成匹配封装
+     * ===================================================================================================
+     *
+     * 2.使用ajax直接发送PUT请求，会导致employee对象封装不上
+     * 请求体中的数据是存在的，但是employee的属性全是null
+     * 导致sql语句最后  update tbl_emp where emp_id = 1014; 丢失了set直接报错
+     * 原因：
+     *      1.Tomcat服务器将请求体重的数据封装为一个map
+     *      2.request.getParameter("empName")就会从map中获取值
+     *      3,但是SpringMVC的POJO参数的属性通过第二步赋值
+     * 所以不可以直接使用ajax直接发送PUT请求，上面说明即使是request.getParameter("empName")都拿不到数据
+     * tomcat是put请求，就不会封装map了，只有post才封装为请求体
+     *
+     * 解决方法：在web.xml中配置HttpPutFormContentFilter过滤器
+     * 1.会将请求体中的数据封装成map
+     * request.getParameter被重写，当查不到request的参数时，就用自己的数据
+     *
+     */
+    //@RequestMapping(value = "/emp/{id}",method = RequestMethod.PUT)
+    @RequestMapping(value = "/emp/{empId}",method = RequestMethod.PUT)
+    @ResponseBody
+    public Message updateEmp(Employee employee){
+        employeeService.updateEmpById(employee);
+        return Message.success();
+    }
+
+    /**
+     * 查询员工的数据用于数据修改,和之前不同，这里不需要封装分页信息
+     *约定好的访问路径中的id值可以用@@PathVariable("id")直接赋值给参数
+     * */
+    @RequestMapping(value = "/emp/{id}",method = RequestMethod.GET)
+    @ResponseBody
+    public Message getEmp(@PathVariable("id") Integer id){
+        Employee emp = employeeService.getSingleEmp(id);
+        return Message.success().add("emp",emp);
+    }
     /**
      * 校验新增员工是否重
      * */

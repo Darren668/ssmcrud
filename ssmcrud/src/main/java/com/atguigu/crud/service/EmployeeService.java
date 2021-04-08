@@ -42,4 +42,17 @@ public class EmployeeService {
         //等与0 就是true 没有重复名字，所以可用
         return count == 0;
     }
+    /**用id查询单个具体的员工，*/
+    public Employee getSingleEmp(Integer id) {
+        Employee employee = employeeMapper.selectByPrimaryKey(id);
+        return employee;
+    }
+
+    /**
+     * 根据path中的id找到对应的数据进行选择性的修改
+     * @param employee
+     */
+    public void updateEmpById(Employee employee) {
+        employeeMapper.updateByPrimaryKeySelective(employee);
+    }
 }

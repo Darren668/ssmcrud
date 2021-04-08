@@ -36,7 +36,7 @@
             <div class="btn btn-danger">删除</div>
         </div>
     </div>
-    <!-- Modal -->
+    <!-- 员工添加的Modal -->
     <div class="modal fade" id="emp_add_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -51,23 +51,26 @@
                         <div class="form-group">
                             <label class="col-sm-2 control-label">empName</label>
                             <div class="col-sm-10">
-                                <input type="text" name="empName" class="form-control" id="empName_add_input" placeholder="EmpName">
-                                <span  class="help-block"></span>
+                                <input type="text" name="empName" class="form-control" id="empName_add_input"
+                                       placeholder="EmpName">
+                                <span class="help-block"></span>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="col-sm-2 control-label">email</label>
                             <div class="col-sm-10">
-                                <input type="email" name="email" class="form-control"  id="email_add_input" placeholder="email@qq.com">
-                                <span  class="help-block"></span>
+                                <input type="email" name="email" class="form-control" id="email_add_input"
+                                       placeholder="email@qq.com">
+                                <span class="help-block"></span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">gender</label>
                             <div class="col-sm-10">
                                 <label class="radio-inline">
-                                    <input type="radio" name="gender" id="gender1_add_value" value="M" checked="checked"> 男
+                                    <input type="radio" name="gender" id="gender1_add_value" value="M"
+                                           checked="checked"> 男
                                 </label>
                                 <label class="radio-inline">
                                     <input type="radio" name="gender" id="gender2_add_value" value="F"> 女
@@ -89,6 +92,63 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                     <button type="button" class="btn btn-primary" id="emp_save_btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 弹窗都使用模板模态框： 员工修改的Modal -->
+    <div class="modal fade" id="emp_update_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">员工修改</h4>
+                </div>
+                <%--为了SpringMVC自动的将提交的表单数据封装为bean对象，那么每一个input的name要与属性对应--%>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">empName</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static" id="empName_update_static"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">email</label>
+                            <div class="col-sm-10">
+                                <input type="email" name="email" class="form-control" id="email_update_input"
+                                       placeholder="email@qq.com">
+                                <span class="help-block"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">gender</label>
+                            <div class="col-sm-10">
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" value="M" checked="checked"> 男
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" value="F"> 女
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">deptName</label>
+                            <div class="col-sm-4">
+                                <%--只需要用dId去新增就可以所以对应部门编号属性--%>
+                                <%--下拉列表的内容应该是点击新增前发送ajax请求，获取部门信息，并填充到这里--%>
+                                <select class="form-control" name="dId" id="dept_update_select">
+                                </select>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="emp_update_btn">更新</button>
                 </div>
             </div>
         </div>
@@ -125,7 +185,7 @@
 <%--不借助模板，直接利用js发送ajax请求，拿到json数据显示--%>
 <script type="text/javascript">
 
-    var totalRecord;
+    var totalRecord,currentPage;
     <%--1.页面加载完成后，直接发送ajax请求--%>
     $(function () {
         //刚开始去首页
@@ -158,7 +218,7 @@
             //取出数据对应到相应的表格行中    $("标签")就是创建该元素   .append就是元素中显示内容
             var empIdTd = $("<td></td>").append(item.empId);
             var empNameTd = $("<td></td>").append(item.empName);
-            var empGenderTd = $("<td></td>").append(item.genger == 'M' ? "男" : "女");
+            var empGenderTd = $("<td></td>").append(item.gender == "M" ? "男" : "女");
             var empEmailTd = $("<td></td>").append(item.email);
             var empDeptTd = $("<td></td>").append(item.department.deptName);
             //创建编辑和删除按钮
@@ -171,9 +231,12 @@
              <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
              删除
              </button>*/
-            var editButton = $("<button></button>").addClass("btn btn-primary btn-sm")
-                .append($("<span></span>").addClass("glyphicon glyphicon-pencil").append("编辑"));
-            var delButton = $("<button></button>").addClass("btn btn-danger btn-sm")
+                //修改功能，在这里创建的时候还要添加单击事件
+            var editButton = $("<button></button>").addClass("btn btn-primary btn-sm edit_btn")
+                    .append($("<span></span>").addClass("glyphicon glyphicon-pencil").append("编辑"));
+            //为编辑按钮添加自定义属性保存当前的id值方便后面修改时获取数据
+            editButton.attr("edit_id",item.empId);
+            var delButton = $("<button></button>").addClass("btn btn-danger btn-sm delete_btn")
                 .append($("<span></span>").addClass("glyphicon glyphicon-trash").append("删除"));
             //放到一个单元格中
             var btnTd = $("<td></td>").append(editButton).append(" ").append(delButton);
@@ -193,6 +256,7 @@
             ", 总" + result.extend.pageInfo.total + "条记录");
         //每次处理分页逻辑对我们的全局变量totalRecord进行更新
         totalRecord = result.extend.pageInfo.total;
+        currentPage = result.extend.pageInfo.pageNum;
     }
 
     //解析显示分页条
@@ -251,6 +315,7 @@
         var navEle = $("<nav></nav>").append(ul);
         navEle.appendTo("#page_nav_area");
     }
+
     function reset_form(ele) {
         $(ele)[0].reset();
         //清空表单样式,此时对象为整个表单，之前验证添加的样式：1.form对象添加has-error has-success
@@ -261,39 +326,43 @@
         $(ele).find(".help-block").empty();
 
     }
+
     //新增员工逻辑
     $("#emp_add_btn").click(function () {
-       //表单重置(表单的数据和样式)，清除数据，jQuery中没有对应的reset方法，所以拿到dom对象操作
+        //表单重置(表单的数据和样式)，清除数据，jQuery中没有对应的reset方法，所以拿到dom对象操作
         reset_form("#emp_add_modal form");
-        //发送ajax请求，差部门信息，显示下拉列表
-        getDepts();
+        //发送ajax请求，查部门信息，显示下拉列表
+        getDepts("#emp_add_modal select");
         //弹出模态框的动作
         $("#emp_add_modal").modal({
-           //点击背景也不会消失
-           backdrop:"static",
-       });
-        
-        function getDepts() {
-            $.ajax({
-                url:"${APP_PATH}/depts",
-                type:"GET",
-                success:function (result) {
-                    //console.log(result)测试，拿到数据
-                    // extend:
-                    //     depts: Array(2)
-                    // 0: {deptId: 1, deptName: "开发部"}
-                    // 1: {deptId: 2, deptName: "测试部"}
-                    //$.each,参数一遍历的对象，
-                    // 后面必须跟每个对象的处理方式函数function(index,item)index就是索引，item/element就是当前遍历到的对象
-                    $.each(result.extend.depts,function (index,item) {
-                        var optionEle = $("<option></option>").append(item.deptName).attr("value",item.deptId);
-                        //因为modal中只有一个select所以可以直接用子寻找方式，或者直接再给select写一个id也行
-                        optionEle.appendTo($("#emp_add_modal select"));
-                    });
-                }
-            });
-        }
+            //点击背景也不会消失
+            backdrop: "static",
+        });
     });
+
+    //定制化是把数据放到参数指定的选择器中
+    function getDepts(ele) {
+        //清空之前的下拉列表值
+        $(ele).empty();
+        $.ajax({
+            url: "${APP_PATH}/depts",
+            type: "GET",
+            success: function (result) {
+                //console.log(result)测试，拿到数据
+                // extend:
+                //     depts: Array(2)
+                // 0: {deptId: 1, deptName: "开发部"}
+                // 1: {deptId: 2, deptName: "测试部"}
+                //$.each,参数一遍历的对象，
+                // 后面必须跟每个对象的处理方式函数function(index,item)index就是索引，item/element就是当前遍历到的对象
+                $.each(result.extend.depts, function (index, item) {
+                    var optionEle = $("<option></option>").append(item.deptName).attr("value", item.deptId);
+                    //因为modal中只有一个select所以可以直接用子寻找方式，或者直接再给select写一个id也行
+                    optionEle.appendTo($(ele));
+                });
+            }
+        });
+    }
 
     //除了校验格式之外，对于新加的元素还要去数据库查重。绑定.change()事件，可以每次更改完及时检验
     //这里是利用后端的数据，校验。同时还应该结合之前的格式校验，可以在这里前端直接合并，或者交给后端来处理格式问题
@@ -301,19 +370,19 @@
         //取到当前对象(标签)的值,表单内容填写后，其value值就是输入值
         var empName = this.value;
         $.ajax({
-            url:"${APP_PATH}/checkUser",
-            type:"GET",
-            data:"empName="+empName,
-            success:function (result) {
+            url: "${APP_PATH}/checkUser",
+            type: "GET",
+            data: "empName=" + empName,
+            success: function (result) {
                 //返回了状态码检查
-                if(result.code == 100){
-                    show_validate_msg("#empName_add_input","success","用户名可用");
+                if (result.code == 100) {
+                    show_validate_msg("#empName_add_input", "success", "用户名可用");
                     //禁用掉保存按钮的实现也就是不让其发送ajax请求,定义一个属性，到时候发送前拿到该按钮的属性判断
-                    $("#emp_save_btn").attr("canClick","success");
-                }else{
+                    $("#emp_save_btn").attr("canClick", "success");
+                } else {
                     //不可用之后注意还要禁用掉保存逻辑，否则一旦输入了其他内容，还是可以添加进去
-                    show_validate_msg("#empName_add_input","error",result.extend.user_validate_msg);
-                    $("#emp_save_btn").attr("canClick","error");
+                    show_validate_msg("#empName_add_input", "error", result.extend.user_validate_msg);
+                    $("#emp_save_btn").attr("canClick", "error");
                 }
             }
         });
@@ -322,7 +391,7 @@
     $("#emp_save_btn").click(function () {
         //1.模态框中填写的表单数据交给服务器保存
         //2.!!!!!!!!!!!!!!!发送请求前，先校验
-        if(!validate_add_form()){
+        if (!validate_add_form()) {
             //false 或者true都可以结束方法就可以，此时保存键单击事件就会被终止
             return false;
         }
@@ -332,33 +401,33 @@
         //相互转换dom->jQuery  $(dom)例如$("#emp_add_modal form") ，  jQuery->dom  jQuery.get()  或者jQuery[0] ...
         //获取之后可以调用jQuery的方法例如.attr()  .append(),
         //this就是简单的html dom对象，对应一个标签，只能简单的获取属性使用.id  .name等等可以直接过去
-        if($(this).attr("canClick") == "error"){
+        if ($(this).attr("canClick") == "error") {
             return false;
         }
         //3.发送ajax请求保存员工
         //使用alert测试表单数据的序列化   alert($("#emp_add_modal form").serialize());
         $.ajax({
-            url:"${APP_PATH}/emp",
-            type:"POST",
+            url: "${APP_PATH}/emp",
+            type: "POST",
             //可以通过js获取表单中的数据，从而添加，但是太麻烦，jQuery直接提供序列化方法
-            data:$("#emp_add_modal form").serialize(),
-            success:function (result) {
+            data: $("#emp_add_modal form").serialize(),
+            success: function (result) {
                 //加上校验之后要判断返回的状态码
-                if(result.code == 100){
+                if (result.code == 100) {
                     // alert(result.msg);
                     //员工保存成功1.关闭模态框2.来到最后一页显示刚才的数据
                     $("#emp_add_modal").modal('hide');
                     //发送ajax请求显示最后一页数据,可以传一个非常大的数，就最后了，但是不保险，那就定义一个全局变量
                     //totalRecord总记录数总是大于等于分页总数
                     to_page(totalRecord);
-                }else{
+                } else {
                     //失败的话显示失败信息 console.log(result);
                     //有哪个字段的就显示,errorField的属性没有内容就是undefined
-                    if(result.extend.errorFields.empName != undefined){
-                        show_validate_msg("#empName_add_input","error",result.extend.errorFields.empName);
+                    if (result.extend.errorFields.empName != undefined) {
+                        show_validate_msg("#empName_add_input", "error", result.extend.errorFields.empName);
                     }
-                    if(result.extend.errorFields.email != undefined){
-                        show_validate_msg("#email_add_input","error",result.extend.errorFields.email);
+                    if (result.extend.errorFields.email != undefined) {
+                        show_validate_msg("#email_add_input", "error", result.extend.errorFields.email);
                     }
 
                 }
@@ -366,53 +435,124 @@
             }
         });
     });
+
     //校验用户输入，注意不要写到某个单击事件里面去。这里有返回值
     function validate_add_form() {
-        //1.拿到药校验的数据
+        //1.拿到校验的数据
         var empName = $("#empName_add_input").val();
         //jQuery官方文档查询常用用户名和中文的表达式
         var regName = /(^[a-zA-Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]+$)/;
-        if(!regName.test(empName)){
+        if (!regName.test(empName)) {
             //alerts不友好，改为直接校验框变红和提示
             //alert("用户名是2-5位中文或者6-16位数字 英文 — _组合");
             //!!!!!!!!!注意，每次调用该函数都会向后添加元素，所以一定要注意更新元素属性或者内容前清空
-            show_validate_msg("#empName_add_input","error","用户名是2-5位中文或者6-16位数字 英文 — _组合");
+            show_validate_msg("#empName_add_input", "error", "用户名是2-5位中文或者6-16位数字 英文 — _组合");
             return false;
-        }else{
-            show_validate_msg("#empName_add_input","success","");
+        } else {
+            show_validate_msg("#empName_add_input", "success", "");
             return true;
         }
         //2.校验邮箱
         var email = $("#email_add_input").val();
         //jQuery官方文档查询常用用户名和中文的表达式
         var regEmail = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
-        if(!regEmail.test(email)){
+        if (!regEmail.test(email)) {
             //alert("邮箱格式不正确");
-            show_validate_msg("#email_add_input","error","邮箱格式不正确");
+            show_validate_msg("#email_add_input", "error", "邮箱格式不正确");
             return false;
-        }else{
-            show_validate_msg("#email_add_input","success","");
+        } else {
+            show_validate_msg("#email_add_input", "success", "");
             return true;
         }
 
     }
 
     //重复代码抽取校验信息显示函数
-    function show_validate_msg(ele,status,msg) {
+    function show_validate_msg(ele, status, msg) {
         //每次更新属性前即下一次校验前，先清空之前的状态！！！！！
         //remove中多个参数可以用空格隔开,只要检查有就删除
         $(ele).parent().removeClass("has-success has-error");
         //或者使用text("")直接赋值为空,为什么不直接查找类.help-block呢？因为此时对象是input标签，同级。父类向下查找可以用Find
         $(ele).next("span").empty();
-        if("success" == status){
+        if ("success" == status) {
             $(ele).parent().addClass("has-success");
             //next("span").text("")也可以添加内容
             $(ele).next("span").append(msg);
-        }else if("error" == status){
+        } else if ("error" == status) {
             $(ele).parent().addClass("has-error");
             $(ele).next("span").append(msg);
         }
     }
+
+    //加载页面完成之后，才发送的ajax请求，才创建的按钮。
+    // 所以在页面加载阶段直接绑定.edit_btn绑定不上的
+    //解决方法：1.可以在创建的时候绑定，但是耦合度太高 2.绑定单击.live  但是jquery新版没有live替换成了on
+    //参数type  selector   data function
+    $(document).on("click", ".edit_btn", function () {
+        //1.查出员工信息显示，查出部门信息，方法中已经有添加到选择器中的逻辑，构建显示部门列表
+        getDepts("#emp_update_modal select");
+        //查询员工,直接通过查询获取的复杂度和为编辑按钮新增属性差不多，找还得向上复杂
+        getEmp($(this).attr("edit_id"));
+        //为了更新按钮时也有这个数据，将id传给更新按钮
+        $("#emp_update_btn").attr("update_id",$(this).attr("edit_id"));
+        //2.弹出模态框
+        $("#emp_update_modal").modal({
+            //点击背景也不会消失
+            backdrop: "static",
+        });
+    });
+
+    function getEmp(id) {
+        $.ajax({
+            url:"${APP_PATH}/emp/"+id,
+            type:"GET",
+            success:function (result) {
+                var empData = result.extend.emp;
+                //拿到数据后显示到modal中，用户名写死不可以修改其他的填充
+                $("#empName_update_static").text(empData.empName);
+                //邮箱格式的表单input直接赋值value即可
+                $("#email_update_input").val(empData.email);
+                //单选的话，在val中添加对应的数组就行，数组中的元素对应标签的value，有相同的即被选中
+                $("#emp_update_modal input[name=gender]").val([empData.gender]);
+                //下拉列表相同.通过确定的value从而直接选中，在查询getDepts的时候已经为每一个option赋值了，
+                //所以一个value对应显示的文字
+                $("#emp_update_modal select").val([empData.dId]);
+            }
+        });
+    }
+
+    //为更新按钮绑定单击事件
+    $("#emp_update_btn").click(function () {
+        //1.相同，填写完表单应该先检查填写内容
+        var email = $("#email_update_input").val();
+        //jQuery官方文档查询常用用户名和中文的表达式
+        var regEmail = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+        if (!regEmail.test(email)) {
+            //alert("邮箱格式不正确");
+            show_validate_msg("#email_update_input", "error", "邮箱格式不正确");
+            return false;
+        } else {
+            show_validate_msg("#email_update_input", "success", "");
+        }
+
+        //2.合法后再发送ajax请求进行update
+        $.ajax({
+            url:"${APP_PATH}/emp/"+$(this).attr("update_id"),
+            //ajax中可以直接发送PUT
+            type:"PUT",
+            //如果上面使用的post那么后端无法识别，需要在请求参数中添加方法说明
+            //data:$("emp_update_modal").serialize()+"&_method=PUT",
+            //！！！！千万注意，自己写是将表单数据序列化，不要认为模块框就是数据
+            data:$("#emp_update_modal form").serialize(),
+            success:function (result) {
+                //1.关闭模态框，回到页面
+                $("#emp_update_modal").modal('hide');
+                //2.回到本页面,本页面怎么回？也可以定义全局变量时刻保存更改此时的页面值
+                to_page(currentPage);
+            }
+
+        });
+    });
 </script>
 </body>
 </html>
