@@ -65,6 +65,43 @@
             <version>1.2</version>
         </dependency>
 
+补充：
+老师提到的注意点以及借鉴https://github.com/SAIKA952/SSM-CRUD同学的exception.txt文件：
+
+	java.lang.NoClassDefFoundError: javax/servlet/SessionCookieConfig
+	原因：Spring4测试的时候，需要servlet3.0的支持，而我们导入的servlet版本为2.5
+	解决方案：
+		将pom.xml中的
+		<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>2.5</version>
+				<scope>provided</scope>
+		</dependency>
+		换成
+		<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>4.0.1</version>
+				<scope>provided</scope>
+		</dependency>
+
+	org.springframework.web.util.NestedServletException: Handler dispatch failed; nested exception is java.lang.AbstractMethodError: Method 	com/mchange/v2/c3p0/impl/NewProxyResultSet.isClosed()Z is abstract
+	原因：c3p0的jar包有问题
+	解决方案：
+		将pom.xml中的
+		<dependency>
+				<groupId>c3p0</groupId>
+			<artifactId>c3p0</artifactId>
+				<version>0.9.1.2</version>
+		</dependency>
+		换成
+		<dependency>
+			<groupId>com.mchange</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>0.9.5.2</version>
+		</dependency>
+	
 6.Maven除了导入依赖之外，还可以构建工程
     使用maven-install编译运行后，在target下面的war包就是打包好的项目。将其放在服务器tomcat的webapps目录下，通过启动服务器，
     就会自动部署该项目，所有的访问处理逻辑也是顺利运行的
