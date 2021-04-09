@@ -1,0 +1,77 @@
+1.mybatis generator 执行后
+	1)找不到文件,按道理main直接写文件名应该是项目工程下可以找到，但是此处找不到，不知道是因为git还是maven，
+	我加了项目名/mbg.xml找到。ssmcrud/mbg.xml
+	2)运行后，没有生成文件。在mbg.xml中将三个generator标签中的targetProject就改为ssmcrud/src/main/java或者ssmcrud\src\main\resources。
+	单斜杠反斜杠在这里都可以。可能idea2020.3做了优化？但是回到本问题中，根本原因还是得加一个项目名在最前面
+	
+2.mybatis generator 生成的mapper文件中的方法太简单，尽管粘贴了github中的mybatis3的模板
+	解决方法：模板错误，将mbg.xml中的<context id="mybatis3" targetRuntime="MyBatis3">
+	targetRuntime对应四种版本，用哪个写哪个，模板中写了simpleMybatis所以。。
+
+3.在mvcTest中寻找webapp下面的springmvc配置文件，因为不是classpath，所以使用file,尝试直接写ssmcrud/src/不好使
+解决方法：
+    直接从src开始，前面不需要任何路径，src/main/webapp/WEB-INF/...
+
+4.Spring单元测试的标签不提示问题:
+    spring单元测试报错：通配符的匹配很全面, 但无法找到元素 'tx:advice' 的声明。
+    报错：Caused by: org.springframework.beans.factory.xml.XmlBeanDefinitionStoreException:
+    Line 54 in XML document from class path resource [applicationContext.xml] is invalid;
+    nested exception is org.xml.sax.SAXParseException; lineNumber: 54; columnNumber: 30;
+    cvc-complex-type.2.4.c: 通配符的匹配很全面, 但无法找到元素 'tx:advice' 的声明。
+
+    问题出在了tx:advice找不到上了
+
+    解决：在applicationContext.xml上的xsi:schemaLocation 加上：
+
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+
+    参考：https://blog.csdn.net/azsx02/article/details/83241587
+
+
+5.Spring单元测试ContextConfiguration注解不能使用 @不出来 没反应
+    将依赖spring-test中的scope去掉，注意某些依赖加了范围限定
+
+    参考：https://bbs.csdn.net/topics/397045722?list=lz
+6.解决配置Spring时出现的Element tx:attributesis not allowed here问题
+
+    只需要把该xml文章顶部的xmlns:tx="http://www.springframework.org/schema/cache"改为
+    xmlns:tx="http://www.springframework.org/schema/tx"即可解决问题
+    参考：https://blog.csdn.net/qq_44978306/article/details/107841081
+
+7.web路径问题:
+    不以/开始的相对路径，找资源，以当前资源的路径为基准，经常容易出现问题
+    以/开始的相对路径找资源，以服务器的路径为标准(http://localhost:3306)，需要加上项目名
+        http://localhost:3306/ssmcrud
+
+        但是习惯上不会手写，而是借助java代码从请求域中获取当前项目根目录
+        <%
+            pageContext.setAttribute("APP_PATH",request.getContextPath());
+        %>
+        可以拿到tomcat服务器当时配置中的development下面的application context的设置值,定位到项目中
+
+8.引入jstl tag标签后加载网页提示
+    Failed to load or instantiate TagLibraryValidator class:
+    org.apache.taglibs.standard.tlv.JstlCoreTLV
+
+    可能原因标签库没有导入响应的依赖，网上很多说jar包冲突，但是尝试将两个依赖导入后，网页成功加载。，。。。。
+        <dependency>
+            <groupId>javax.servlet.jsp.jstl</groupId>
+            <artifactId>jstl-api</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jstl-impl</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+6.Maven除了导入依赖之外，还可以构建工程
+    使用maven-install编译运行后，在target下面的war包就是打包好的项目。将其放在服务器tomcat的webapps目录下，通过启动服务器，
+    就会自动部署该项目，所有的访问处理逻辑也是顺利运行的
+    平时开发使用idea中的tomcat也是构建在了webapps下。离开idea，只用打包好的war包即可
+
+7.项目用到的所有资源网站总结:
+    maven依赖包查询：https://mvnrepository.com/
+    bootstrap帮助搭建前端界面：https://v3.bootcss.com/
+    mybatis配置:https://mybatis.org/mybatis-3/getting-started.html
+    mybatis-generator配置：http://mybatis.org/generator/quickstart.html#MyBatis3

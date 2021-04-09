@@ -33,7 +33,7 @@
     <div class="row">
         <div class="col-md-4 col-md-offset-8">
             <div class="btn btn-primary" id="emp_add_btn">新增</div>
-            <div class="btn btn-danger">删除</div>
+            <div class="btn btn-danger" id="emp_delete_all">删除</div>
         </div>
     </div>
     <!-- 员工添加的Modal -->
@@ -159,6 +159,9 @@
             <table class="table table-hover" id="emps_table">
                 <thead>
                 <tr>
+                    <th>
+                        <input type="checkbox" id="check_all"/>
+                    </th>
                     <th>#</th>
                     <th>empName</th>
                     <th>gender</th>
@@ -211,11 +214,13 @@
 
     function build_emps_table(result) {
         //每次ajax重新发送请求调用函数，注意先清空数据，否则直接叠加
+        $("#check_all").prop("checked",false);
         $("#emps_table tbody").empty();
         var emps = result.extend.pageInfo.list;
         $.each(emps, function (index, item) {
             // alert(item.empName);
             //取出数据对应到相应的表格行中    $("标签")就是创建该元素   .append就是元素中显示内容
+            var checkboxTd = $("<td></td>").append($("<input type='checkbox' class='check_item'/>"));
             var empIdTd = $("<td></td>").append(item.empId);
             var empNameTd = $("<td></td>").append(item.empName);
             var empGenderTd = $("<td></td>").append(item.gender == "M" ? "男" : "女");
@@ -238,10 +243,13 @@
             editButton.attr("edit_id",item.empId);
             var delButton = $("<button></button>").addClass("btn btn-danger btn-sm delete_btn")
                 .append($("<span></span>").addClass("glyphicon glyphicon-trash").append("删除"));
+            //为删除按钮添加自定义属性保存当前的id方便删除
+            delButton.attr("del_id",item.empId);
+
             //放到一个单元格中
             var btnTd = $("<td></td>").append(editButton).append(" ").append(delButton);
             //append方法执行完成之后返回之前的元素所以可以持续添加
-            $("<tr></tr>").append(empIdTd).append(empNameTd).append(empGenderTd)
+            $("<tr></tr>").append(checkboxTd).append(empIdTd).append(empNameTd).append(empGenderTd)
                 .append(empEmailTd).append(empDeptTd).append(btnTd)
                 .appendTo("#emps_table tbody");
         });
@@ -491,7 +499,7 @@
     $(document).on("click", ".edit_btn", function () {
         //1.查出员工信息显示，查出部门信息，方法中已经有添加到选择器中的逻辑，构建显示部门列表
         getDepts("#emp_update_modal select");
-        //查询员工,直接通过查询获取的复杂度和为编辑按钮新增属性差不多，找还得向上复杂
+        //方式1查询员工，这里处理查询后还要将结果显示到modal里面所以构建函数  方式2向上查找到emp，单独拿名字无其他逻辑
         getEmp($(this).attr("edit_id"));
         //为了更新按钮时也有这个数据，将id传给更新按钮
         $("#emp_update_btn").attr("update_id",$(this).attr("edit_id"));
@@ -552,6 +560,75 @@
             }
 
         });
+    });
+
+
+    //删除逻辑,添加单击事件
+    $(document).on("click",".delete_btn",function () {
+        //1.因为没有对其他模块的逻辑，简单就是拿到名字所以直接向上搜索即可
+        var empName = $(this).parents("tr").find("td:eq(2)").text();
+        //2.通过id发送ajax请求，发送前注意要设置提醒,还要有判断逻辑使用confirm
+        //alert("你确定要删除"+【empName】+"吗？");
+        if(confirm("你确定要删除【"+empName+"】吗？")){
+            //3.点击确认之后发送ajax请求
+            $.ajax({
+                url:"${APP_PATH}/emp/"+$(this).attr("del_id"),
+                type:"DELETE",
+                success:function (result) {
+                    //删除成功提醒
+                    //删除成功成功跳转页面
+                    if(result.code == 100){
+                        alert("删除成功")
+                        to_page(currentPage);
+                    }
+                }
+            });
+        }
+
+    });
+
+    //添加全选和单选的逻辑
+    $("#check_all").click(function () {
+        //attr获取属性checked是undefined
+        //dom原生属性获取推荐使用prop,而自定义的属性推荐使用attr
+        //prop修改和读取dom原生的属性
+        $(".check_item").prop("checked",$(this).prop("checked"));
+    });
+    //如果单个的全部选中，则将上面的全选按钮置为选中
+    $(document).on("click",".check_item",function () {
+        //jQuery中的属性checked,可以拿到当前已经被修改checked值的标签
+        var isAllChecked = $(".check_item:checked").length == $(".check_item").length;
+        $("#check_all").prop("checked",isAllChecked);
+    });
+
+    //写全部删除按钮的逻辑
+    $("#emp_delete_all").click(function () {
+        //先要拿到当前被选中的框
+        var checkedItems = $(".check_item:checked");
+        var ids = "";
+        var empNames = "";
+        $.each(checkedItems,function (index,item) {
+            //组装每一个empName
+            empNames += $(item).parents("tr").find("td:eq(2)").text()+",";
+            //组装每一个id,约定发送多个id值1-2-3作为我们批量删除的ID值
+            ids += $(item).parents("tr").find("td:eq(1)").text()+"-";
+
+        });
+        //去掉最后一个没用的标点
+        empNames = empNames.substring(0,empNames.length-1);
+        ids = ids.substring(0,ids.length-1);
+        //发送请求前提醒
+        if(confirm("你确定删除【"+ empNames +"】吗？")){
+            $.ajax({
+                url:"${APP_PATH}/emp/"+ids,
+                type:"DELETE",
+                success:function (result) {
+                    alert(result.msg);
+                    to_page(currentPage);
+                }
+            });
+        }
+
     });
 </script>
 </body>

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.print.attribute.standard.Media;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,6 +36,32 @@ public class EmployeeController {
 
     @Autowired
     EmployeeService employeeService;
+
+    /**
+     * 删除批量和单个二合一
+     * 约定多个时，id格式1-2-3
+     * 单个就是1
+     * @param ids
+     * @return
+     */
+    @RequestMapping(value = "/emp/{ids}",method = RequestMethod.DELETE)
+    @ResponseBody
+    public Message deleteEmp(@PathVariable("ids") String ids){
+        if(ids.contains("-")){
+            //如果有-，将每个id解析到list中作为参数传给方法
+            List<Integer> idList = new ArrayList<>();
+            String[] idArray = ids.split("-");
+            for(String id : idArray){
+                idList.add(Integer.valueOf(id));
+            }
+            employeeService.deleteEmpByIds(idList);
+        }else {
+            Integer id = Integer.valueOf(ids);
+            employeeService.deleteEmpById(id);
+        }
+        return Message.success();
+    }
+
 
     /**
      * 1.员工更新方法，根据id来更新员工信息
