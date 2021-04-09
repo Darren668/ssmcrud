@@ -42,4 +42,37 @@ public class EmployeeService {
         //等与0 就是true 没有重复名字，所以可用
         return count == 0;
     }
+    /**用id查询单个具体的员工，*/
+    public Employee getSingleEmp(Integer id) {
+        Employee employee = employeeMapper.selectByPrimaryKey(id);
+        return employee;
+    }
+
+    /**
+     * 根据path中的id找到对应的数据进行选择性的修改
+     * @param employee
+     */
+    public void updateEmpById(Employee employee) {
+        employeeMapper.updateByPrimaryKeySelective(employee);
+    }
+
+    /**
+     * 通过id删除用户
+     * @param id
+     */
+    public void deleteEmpById(Integer id) {
+        employeeMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
+     * 通过list中的id全部删除
+     * @param idList
+     */
+    public void deleteEmpByIds(List<Integer> idList) {
+        //借助example中标准来删除
+        EmployeeExample employeeExample = new EmployeeExample();
+        EmployeeExample.Criteria criteria = employeeExample.createCriteria();
+        criteria.andEmpIdIn(idList);
+        employeeMapper.deleteByExample(employeeExample);
+    }
 }
